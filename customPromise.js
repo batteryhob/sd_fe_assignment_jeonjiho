@@ -105,18 +105,19 @@ class CustomPromise {
     }
     
     static all(promises){
-
-        for(const a of [1,2,3]){
-            console.log(a)
-            setTimeout(()=>{
-              console.log(promises);
-            }, 0);
+				
+        const values = [];
+        for(const p of promises){
+	      p.then((result)=>{
+              values.push(result);
+              if(values.length === promises.length){
+              	console.log("완료:", values)
+                //return new CustomPromise(resolve => resolve(values));
+              }
+            });            
         }
-
-        //console.log(promises)
-        //return new CustomPromise(resolve => resolve(values));
-      }
-    
+       
+     }    
     
 }
 
