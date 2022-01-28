@@ -105,18 +105,19 @@ class CustomPromise {
     }
     
     static all(promises){
-				
-        const values = [];
-        for(const p of promises){
-	      p.then((result)=>{
-              values.push(result);
-              if(values.length === promises.length){
-              	console.log("완료:", values)
-                //return new CustomPromise(resolve => resolve(values));
-              }
-            });            
-        }
-       
+	    
+        var values = [];
+        return new CustomPromise((resolve) => {
+          for(const p of promises){
+              	p.then((result)=>{
+			values.push(result);
+			if(values.length === promises.length){
+			  resolve(values)
+			}
+          	});
+          }
+        });        
+        
      }    
     
 }
