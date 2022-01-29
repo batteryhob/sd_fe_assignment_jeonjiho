@@ -126,8 +126,7 @@ class CustomPromise {
             reject(error)
           })
         }
-      });
-      
+      });      
    }    
   
 }
@@ -167,30 +166,18 @@ console.log(ful4().then((result)=>{
   console.log("두번째,", result)
 })); */
 
-/* reject
-const ful1 = new Promise((_,reject )=> { reject(new Error('Error')) });
-const ful2 = new CustomPromise((_,reject) => { reject(new Error('Error')) });
-console.log(ful1);
-console.log(ful2);
-ful1.catch(console.log);
-ful2.catch(console.log);
-*/
-
-
 /* //resolve() 비교
 const resolvedPromise1 = Promise.resolve([1,2,3]);
 resolvedPromise1.then(console.log)
 const resolvedPromise2 = CustomPromise.resolve([1,2,3]);
-resolvedPromise2.then(console.log)  
-*/
-
+resolvedPromise2.then(console.log)   */
 
 /* //reject() 비교
 const rejectedPromise1 = Promise.reject(new Error('Error'));
 rejectedPromise1.catch(console.log)
 const rejectedPromise2 = CustomPromise.reject(new Error('Error'));
-rejectedPromise2.catch(console.log) 
-*/
+rejectedPromise2.catch(console.log) */
+
 
 const getDataOrgin1 = () => {
 return new Promise(resolve =>  
