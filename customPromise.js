@@ -65,15 +65,18 @@ class CustomPromise {
       console.log('then')
       
       if(this.CustomPromiseState === 'fulfilled'){
-          callback(this.CustomPromiseResult)
+      		callback(this.CustomPromiseResult)
+          //return new CustomPromise(resolve => resolve(callback(this.CustomPromiseResult)));
           
       }else{
           //비동기 시, resolve call시 실행될 함수
           console.log("add resolve callbackfunc")
           console.log(callback)
-          this.resolveFuncList.push(callback);
-          return this; //함수 체이닝을 위해 this(CustomPromise) 반환
-      
+          this.resolveFuncList.push(callback)
+          //return new CustomPromise(resolve => {
+          //  this.resolveFuncList.push(() => resolve(callback(this.CustomPromiseResult)));
+          //});
+          return this; //함수 체이닝을 위해 this(CustomPromise) 반환      
       }
     
   }
@@ -130,93 +133,72 @@ class CustomPromise {
 }
 
 
-//형태비교
-//const ful1 = new Promise(resolve => resolve(1))
-//const ful2 = new CustomPromise(resolve => resolve(1))
-//console.log(ful1);
-//console.log(ful2);
-//ful1.then(console.log);
-//ful2.then(console.log);
+/* //형태비교
+const ful1 = new Promise(resolve => resolve(1))
+const ful2 = new CustomPromise(resolve => resolve(1))
+console.log(ful1);
+console.log(ful2);
+ful1.then(console.log);
+ful2.then(console.log); */
 
-/* const getDataOrgin1 = () => {
+/* //then체이닝
+const ful3 = () => {
   return new Promise(resolve =>  
     setTimeout(() => {
       resolve(1);
     }, 3000)    
   );
 }
-getDataOrgin1().then((result)=>{
-  console.log("첫번째,", result)
-}).then((result)=>{
-  console.log("두번째,", result)
-}); */
-
-//then체이닝
-const ful3 = () => {
-return new CustomPromise(resolve =>  
-  setTimeout(() => {
-    resolve(1);
-  }, 3000)    
-);
-}
 const ful4 = () => {
-return new CustomPromise(resolve =>  
-  setTimeout(() =>{
-    resolve(2);
-  }, 2000)    
-);
+  return new CustomPromise(resolve =>  
+    setTimeout(() =>{
+      resolve(1);
+    }, 3000)    
+  );
 }
-
 console.log(ful3().then((result)=>{
   console.log("첫번째,", result)
-  return ful4();
 }).then((result)=>{
   console.log("두번째,", result)
 }));
+console.log(ful4().then((result)=>{
+  console.log("첫번째,", result)
+}).then((result)=>{
+  console.log("두번째,", result)
+})); */
 
-//then 체이닝 비교
-//const ful1 = new Promise(resolve => resolve(1)).then(console.log).then(console.log).then(console.log).then(console.log);
-//const ful2 = new CustomPromise((resolve) => { resolve(1) }).then(console.log).then(console.log).then(console.log);
-
-//console.log(ful2)
-//ful2.then(console.log);
-
-
-
-//ful2.then((result)=>{
-//  console.log(result)
-//  return new CustomPromise((resolve) => { resolve(1) });
-//}).then(console.log);
-
-
-
-
-/* const ful1 = new Promise((_,reject )=> { reject(new Error('Error')) });
+/* reject
+const ful1 = new Promise((_,reject )=> { reject(new Error('Error')) });
 const ful2 = new CustomPromise((_,reject) => { reject(new Error('Error')) });
 console.log(ful1);
 console.log(ful2);
 ful1.catch(console.log);
-ful2.catch(console.log); */ 
+ful2.catch(console.log);
+*/
 
 
-/* 
+/* //resolve() 비교
 const resolvedPromise1 = Promise.resolve([1,2,3]);
 resolvedPromise1.then(console.log)
 const resolvedPromise2 = CustomPromise.resolve([1,2,3]);
-resolvedPromise2.then(console.log) 
+resolvedPromise2.then(console.log)  
 */
 
-/* 
+
+/* //reject() 비교
 const rejectedPromise1 = Promise.reject(new Error('Error'));
 rejectedPromise1.catch(console.log)
 const rejectedPromise2 = CustomPromise.reject(new Error('Error'));
 rejectedPromise2.catch(console.log) 
 */
 
-
-
-
-
+const getDataOrgin1 = () => {
+return new Promise(resolve =>  
+  setTimeout(() => {
+    resolve(1);
+  }, 3000)    
+);
+}
 const getDataOrgin2 = () => {
 return new Promise(resolve =>  
   setTimeout(() => {
@@ -276,35 +258,20 @@ return new CustomPromise((_,reject) =>
 );
 }
 
-
-//getData1();
-//getDataOrgin1();
-
-//console.log(getDataOrgin1().then(console.log));
-//console.log(getData1().then(console.log))
-
-//console.log(Promise.all([getData1(), getData2(), getData3()]));
-/*  Promise.all([getError1(), getError2(), getError3()])
+/* //all() 비교
+Promise.all([getDataOrgin1(), getDataOrgin2(), getDataOrgin3()])
 .then(console.log)
 .catch(console.log)
 .finally(()=>{
-console.log('done');
+  console.log('Promise done');
 })
+CustomPromise.all([getData1(), getData2(), getData3()])
+.then(console.log)
+.catch(console.log)
+.finally(()=>{
+  console.log('CustomPromise done');
+}) 
 */
-
-/* CustomPromise.all([getData1(), getData2(), getData3()])
-.then(console.log)
-.catch(console.log)
-.finally(()=>{
-console.log('done');
-}) */
-
-/* CustomPromise.all([getError1(), getError2(), getError3()])
-.then(console.log)
-.catch(console.log)
-.finally(()=>{
-console.log('done');
-}) */
 
 
 
