@@ -58,7 +58,7 @@ class CustomPromise {
 
     //console.log('reject() 호출');
     //console.log(this);
-    //catch() 구현에 실패했습니다.
+    //reject() 구현에 실패했습니다.
     
   }
 
