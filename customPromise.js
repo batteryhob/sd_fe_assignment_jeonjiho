@@ -7,6 +7,7 @@ class CustomPromise {
     
     this.resolveFuncList = [];
     this.resolveFunc = null;
+    this.rejectFuncList = [];
     this.rejectFunc = null;
     this.finallyFunc = null;
     executor(this.resolver, this.rejector);
@@ -14,23 +15,39 @@ class CustomPromise {
   }
   
   //arrow function을 통해, this에 바인딩
-  resolver = (value) => {
-      console.log('resolve()호출');
+  resolver = (value) => {  
       
       //then을 통해 등록된 함수가 없을 시,
       if(this.resolveFuncList.length == 0){
           this.CustomPromiseState = 'fulfilled';
           this.CustomPromiseResult = value;
-      }else{
-      
-          this.CustomPromiseState = 'fulfilled';
-          this.CustomPromiseResult = value;
-          while(this.resolveFuncList.length > 0){
-            const rtnFunc = this.resolveFuncList.shift();
-            this.resolveFunc = rtnFunc;
-            this.resolveFunc(this.CustomPromiseResult);
-            this.CustomPromiseResult = undefined;
-          }          
+      }else{      
+      		
+          if(value instanceof CustomPromise){
+      		
+						value.then((result)=>{
+              this.CustomPromiseState = 'fulfilled';
+              this.CustomPromiseResult = result;
+              while(this.resolveFuncList.length > 0){
+                const rtnFunc = this.resolveFuncList.shift();
+                this.resolveFunc = rtnFunc;
+                this.resolveFunc(this.CustomPromiseResult);
+                this.CustomPromiseResult = undefined;
+              }            
+            });
+            
+          }else{
+          
+            this.CustomPromiseState = 'fulfilled';
+            this.CustomPromiseResult = value;
+            while(this.resolveFuncList.length > 0){
+              const rtnFunc = this.resolveFuncList.shift();
+              this.resolveFunc = rtnFunc;
+              this.resolveFunc(this.CustomPromiseResult);
+              this.CustomPromiseResult = undefined;
+            }
+            
+          }
 
       }
       
@@ -43,63 +60,40 @@ class CustomPromise {
   rejector = (error) => {
 
     console.log('reject() 호출');
-      
-      //catch를 통해 등록된 함수가 없을 시,
-      if(this.rejectFunc === null){          
-          this.CustomPromiseState = 'rejected';
-          this.CustomPromiseResult = error;
-      }else{
-          this.rejectFunc(error);
-          this.CustomPromiseState = 'rejected';
-          this.CustomPromiseResult = error;
-      }
-      
-      if(typeof this.finallyFunc === 'function'){
-          console.log('finally() 호출');
-          this.finallyFunc();
-      }        
+    this.CustomPromiseState = 'rejected';
+    this.CustomPromiseResult = value;
+
   }
   
   //비동기 시 앞으로 실행할 함수(the,catch,finally)를 적재
-  then(callback){
-      console.log('then')
-      
+  then(fulfilCallback, rejectCallback){
+  
       if(this.CustomPromiseState === 'fulfilled'){
-      		callback(this.CustomPromiseResult)
-          //return new CustomPromise(resolve => resolve(callback(this.CustomPromiseResult)));
-          
-      }else{
+      		//callback(this.CustomPromiseResult)          
+          return new CustomPromise(resolve => resolve(fulfilCallback(this.CustomPromiseResult))); 
+      }
+      else if(this.CustomPromiseState === 'rejected'){
+        //callback(this.CustomPromiseResult)          
+        return new CustomPromise((_reject) => _reject(rejectCallback(this.CustomPromiseResult))); 
+      }      
+      else{
           //비동기 시, resolve call시 실행될 함수
           console.log("add resolve callbackfunc")
-          console.log(callback)
-          this.resolveFuncList.push(callback)
-          //return new CustomPromise(resolve => {
-          //  this.resolveFuncList.push(() => resolve(callback(this.CustomPromiseResult)));
-          //});
-          return this; //함수 체이닝을 위해 this(CustomPromise) 반환      
+					//this.resolveFuncList.push(callback) 
+          //return this; //함수 체이닝을 위해 this(CustomPromise) 반환          
+          return new CustomPromise(resolve => {
+          	this.resolveFuncList.push(() => resolve(fulfilCallback(this.CustomPromiseResult)));
+          });          
       }
     
   }
-  catch(callback){
-  
-      if(this.CustomPromiseState === 'rejected'){
-          callback(this.CustomPromiseResult);
-      
-      }else{
-          //비동기 시, reject call시 실행될 함수
-          console.log("add reject callbackfunc")
-          this.rejectFunc = callback;
-          return this; //함수 체이닝을 위해 this(CustomPromise) 반환
-      
-      }
-    
+  catch(callback){ 
+    console.log("add reject callbackfunc")
+    return this.then(null, callback)
   }
   finally(callback){
-
-      console.log("add finally callbackfunc")
-      this.finallyFunc = callback;
-      return this; //항상 CustomPromise를 반환
-
+    console.log("add finally callbackfunc")
+    return this.then(()=>{ return callback(); });    
   }
   
   //정적메서드
@@ -140,14 +134,14 @@ console.log(ful2);
 ful1.then(console.log);
 ful2.then(console.log); */
 
-/* //then체이닝
-const ful3 = () => {
+//then체이닝
+/* const ful3 = () => {
   return new Promise(resolve =>  
     setTimeout(() => {
       resolve(1);
     }, 3000)    
   );
-}
+} */
 const ful4 = () => {
   return new CustomPromise(resolve =>  
     setTimeout(() =>{
@@ -155,16 +149,29 @@ const ful4 = () => {
     }, 3000)    
   );
 }
-console.log(ful3().then((result)=>{
-  console.log("첫번째,", result)
-}).then((result)=>{
-  console.log("두번째,", result)
-}));
-console.log(ful4().then((result)=>{
+const ful5 = () => {
+  return new CustomPromise(resolve =>  
+    setTimeout(() =>{
+      resolve(1);
+    }, 3000)    
+  );
+}
+
+/* console.log(ful3().then((result)=>{
   console.log("첫번째,", result)
 }).then((result)=>{
   console.log("두번째,", result)
 })); */
+
+ful4().then((result)=>{
+  console.log("첫번째,", result)
+  return ful5();
+}).then((result)=>{
+  console.log("두번째,", result)
+  return ful5();
+}).finally(()=>{
+	console.log("Done");
+});
 
 /* //resolve() 비교
 const resolvedPromise1 = Promise.resolve([1,2,3]);
