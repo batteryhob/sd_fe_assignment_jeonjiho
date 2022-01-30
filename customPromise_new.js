@@ -5,10 +5,11 @@ class CustomPromise {
         this.CustomPromiseResult = undefined;
         this.resolveFuncList = [];
         this.rejectFuncList = [];
+        this.finallyFunc = null;
         executor(this.resolver, this.rejector);
 
     }
-    
+
     //arrow function을 통해, this에 바인딩
     resolver = (value) => {
         if (this.CustomPromiseState !== "pending")
@@ -21,9 +22,14 @@ class CustomPromise {
             rtnFunc(this.CustomPromiseResult);
             this.CustomPromiseResult = undefined;
         }
-      
+
+        //finally()
+        if (typeof this.finallyFunc === 'function') {
+            const rtnFunc = this.finallyFunc
+            rtnFunc();
+        }
     }
-    
+
     rejector = (err) => {
         if (this.CustomPromiseState !== "pending")
             return;
@@ -35,11 +41,17 @@ class CustomPromise {
             rtnFunc(this.CustomPromiseResult);
             this.CustomPromiseResult = undefined;
         }
+        
+        //finally()
+        if (typeof this.finallyFunc === 'function') {
+            const rtnFunc = this.finallyFunc
+            rtnFunc();
+        }
     }
 
     then(fulfilCallback, rejectCallback) {
 
-        if (this.CustomPromiseState === 'fulfilled') {   
+        if (this.CustomPromiseState === 'fulfilled') {
             return new CustomPromise((resolve, reject) => {
                 try {
                     const fulfilledFromLastPromise = fulfilCallback(this.CustomPromiseResult);
@@ -66,7 +78,7 @@ class CustomPromise {
                     reject(err);
                 }
             });
-        }else{
+        } else {
             //pending
             return new CustomPromise((resolve, reject) => {
                 this.resolveFuncList.push(() => {
@@ -96,14 +108,17 @@ class CustomPromise {
             });
         }
 
-    }    
+    }
     catch(callback) {
         console.log("add reject callbackfunc")
-        return this.then(null, callback)    
+        return this.then(null, callback)
     }
     finally(callback) {
         console.log("add finally callbackfunc")
-        return this.then(() => { return callback(); });
+        //return this.then(() => { return callback(); });
+        //return this.catch(() => { return callback(); });
+        this.finallyFunc = callback;
+        return this;
     }
     //정적메서드
     static resolve(values) {
@@ -123,10 +138,11 @@ class CustomPromise {
                     values.push(result);
                     //return 값이 전달받은 프로미스 수와 같을 때,
                     if (values.length === promises.length) {
-                    resolve(values)
+                        resolve(values)
                     }
-                }).catch((err)=>{
-                    reject(err)
+                },(error)=>{
+                    console.log(error)
+                    reject(error)
                 })
             }
         });
@@ -143,104 +159,112 @@ ful2.then(console.log);
 
 //then체이닝
 const ful3 = () => {
-return new Promise(resolve =>  
-    setTimeout(() => {
-    resolve(1);
-    }, 3000)    
-);
+    return new Promise(resolve =>
+        setTimeout(() => {
+            resolve(1);
+        }, 3000)
+    );
 }
 const ful4 = () => {
-return new CustomPromise(resolve =>  
-    setTimeout(() =>{
-    resolve(1);
-    }, 3000)    
-);
+    return new CustomPromise(resolve =>
+        setTimeout(() => {
+            resolve(1);
+        }, 3000)
+    );
 }
 const ful5 = () => {
-return new CustomPromise((resolve) =>  
-    setTimeout(() =>{
-    resolve(1);
-    }, 3000)    
-);
+    return new CustomPromise((resolve) =>
+        setTimeout(() => {
+            resolve(1);
+        }, 3000)
+    );
 }
 
-ful3().then((result)=>{
-console.log("첫번째,", result)
-}).then((result)=>{
-console.log("두번째,", result)
-}).finally(()=>{
-console.log("Done");
+ful3().then((result) => {
+    console.log("첫번째,", result)
+}).then((result) => {
+    console.log("두번째,", result)
+}).finally(() => {
+    console.log("Done");
 });
 
-ful4().then((result)=>{
-console.log("첫번째,", result)
-return ful5();
-}).then((result)=>{
-console.log("두번째,", result)
-return ful5();
-}).finally(()=>{
-console.log("Done");
+ful4().then((result) => {
+    console.log("첫번째,", result)
+    return ful5();
+}).then((result) => {
+    console.log("두번째,", result)
+    return ful5();
+}).finally(() => {
+    console.log("Done");
 });
 
 //resolve() 비교
-const resolvedPromise1 = Promise.resolve([1,2,3]);
+const resolvedPromise1 = Promise.resolve([1, 2, 3]);
 resolvedPromise1.then(console.log)
-const resolvedPromise2 = CustomPromise.resolve([1,2,3]);
-resolvedPromise2.then(console.log) 
+const resolvedPromise2 = CustomPromise.resolve([1, 2, 3]);
+resolvedPromise2.then(console.log)
 
 
 const getDataOrgin1 = () => {
-return new Promise(resolve =>  
-setTimeout(() => {
-    resolve(1);
-}, 3000)    
-);
+    return new Promise(resolve =>
+        setTimeout(() => {
+            resolve(1);
+        }, 3000)
+    );
 }
 const getDataOrgin2 = () => {
-return new Promise(resolve =>  
-setTimeout(() => {
-    resolve(2);
-}, 2000)    
-);
+    return new Promise(resolve =>
+        setTimeout(() => {
+            resolve(2);
+        }, 2000)
+    );
 }
 const getDataOrgin3 = () => {
-return new Promise(resolve =>    
-setTimeout(() => {
-    resolve(3);
-}, 1000)    
-);
+    return new Promise(resolve =>
+        setTimeout(() => {
+            resolve(3);
+        }, 1000)
+    );
 }
 
 const getData1 = () => {
-return new CustomPromise(resolve =>  
-setTimeout(() => {
-    resolve(1);
-}, 3000)    
-);
+    return new CustomPromise(resolve =>
+        setTimeout(() => {
+            resolve(1);
+        }, 3000)
+    );
 }
 const getData2 = () => {
-return new CustomPromise(resolve =>  
-setTimeout(() =>{
-    resolve(2);
-}, 2000)    
-);
+    return new CustomPromise(resolve =>
+        setTimeout(() => {
+            resolve(2);
+        }, 2000)
+    );
 }
 const getData3 = () => {
-return new CustomPromise(resolve =>  
-setTimeout(() =>{
-    resolve(3);
-}, 1000)    
-);
+    return new CustomPromise(resolve =>
+        setTimeout(() => {
+            resolve(3);
+        }, 1000)
+    );
+}
+
+const getError = () => {
+    return new CustomPromise((_, reject) =>
+        setTimeout(() => {
+            reject(new Error('Error'));
+        }, 1000)
+    );
 }
 
 //all() 비교
 Promise.all([getDataOrgin1(), getDataOrgin2(), getDataOrgin3()])
-.then(console.log)
-.finally(()=>{
-console.log('Promise done');
-})
+    .then(console.log)
+    .finally(() => {
+        console.log('Promise done');
+    })
 CustomPromise.all([getData1(), getData2(), getData3()])
-.then(console.log)
-.finally(()=>{
-console.log('CustomPromise done');
-})
+    .then(console.log)
+    .finally(() => {
+        console.log('CustomPromise done');
+    })
